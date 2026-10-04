@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Prompt Hub | Explore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+
+    <!-- Top Navbar -->
+    <nav class="fixed top-0 w-full z-50 glass shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight text-white">PromptHub</span>
+                </div>
+                
+                <div class="flex-1 max-w-lg mx-8 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-search text-gray-400"></i>
+                    </div>
+                    <input type="text" id="searchInput" class="block w-full pl-10 pr-3 py-2 border border-gray-600 rounded-full leading-5 bg-gray-800 text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all" placeholder="Search prompts, titles...">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Feed & Filters -->
+    <main class="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Filter Controls -->
+        <div class="mb-8 flex flex-col sm:flex-row gap-4 justify-between items-center glass p-4 rounded-2xl">
+            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <!-- Category Filter Dropdown -->
+                <select id="categoryFilter" class="w-full sm:w-auto px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="all">All Categories</option>
+                    <option value="Gaming">Gaming</option>
+                    <option value="Love & Romance">Love & Romance</option>
+                    <option value="Sci-Fi & Cyberpunk">Sci-Fi & Cyberpunk</option>
+                    <option value="Anime & Fantasy">Anime & Fantasy</option>
+                    <option value="Photorealistic">Photorealistic</option>
+                    <option value="Nature & Landscapes">Nature & Landscapes</option>
+                    <option value="3D & Concept Art">3D & Concept Art</option>
+                </select>
+
+                <!-- Sort Filter -->
+                <select id="sortFilter" class="w-full sm:w-auto px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="newest">Newest First</option>
+                    <option value="mostLiked">Most Liked</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Prompts Grid -->
+        <div id="promptsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="glass rounded-2xl p-6 text-center text-gray-400 col-span-full">
+                <i class="fa-solid fa-spinner fa-spin text-3xl mb-3"></i>
+                <p>Loading prompts...</p>
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-12"></div>
+    </main>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm" onclick="closeModal()">
+        <div class="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center" onclick="event.stopPropagation()">
+            <img id="modalImg" src="" class="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl border border-white/10">
+            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-2xl hover:text-gray-300">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 glass px-4 py-2 rounded-lg flex items-center gap-2 text-green-400 z-50">
+        <i class="fa-solid fa-check-circle"></i>
+        <span id="toastMsg">Copied!</span>
+    </div>
+
+    <script type="module">
+        import { db } from "./firebase-config.js";
+        import { collection, getDocs, doc, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+        let allPrompts = [];
+        let filteredPrompts = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        async function fetchPrompts() {
+            const promptsGrid = document.getElementById('promptsGrid');
+            try {
+                const q = query(collection(db, "ai_posts"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+                allPrompts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                applyFilters();
+            } catch (error) {
+                console.error("Error fetching prompts: ", error);
+                promptsGrid.innerHTML = `<div class="col-span-full text-center text-red-400">Error loading prompts.</div>`;
+            }
+        }
+
+        function applyFilters() {
+            const selectedCategory = document.getElementById('categoryFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredPrompts = allPrompts.filter(p => {
+                const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+                const matchesSearch = (p.title && p.title.toLowerCase().includes(searchTerm)) ||
+                                      (p.promptText && p.promptText.toLowerCase().includes(searchTerm));
+                return matchesCategory && matchesSearch;
+            });
+
+            if (sortBy === 'mostLiked') {
+                filteredPrompts.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            } else {
+                filteredPrompts.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+            }
+
+            renderPage(1);
+        }
+
+        function renderPage(page) {
+            currentPage = page;
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageItems = filteredPrompts.slice(start, end);
+
+            renderPrompts(pageItems);
+            renderPagination();
+        }
+
+        function renderPrompts(prompts) {
+            const promptsGrid = document.getElementById('promptsGrid');
+            promptsGrid.innerHTML = '';
+
+            if (prompts.length === 0) {
+                promptsGrid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-12">No prompts found matching your criteria.</div>`;
+                return;
+            }
+
+            prompts.forEach(prompt => {
+                const card = document.createElement('div');
+                card.className = "glass rounded-2xl overflow-hidden group flex flex-col h-full hover:shadow-2xl hover:shadow-indigo-500/20 transition-all duration-300";
+                
+                const cleanTitle = escapeHTML(prompt.title || '');
+                const cleanCategory = escapeHTML(prompt.category || '');
+                const cleanPromptText = escapeHTML(prompt.promptText || '');
+
+                card.innerHTML = `
+                    <div class="relative overflow-hidden aspect-video cursor-pointer" onclick="openModal('${prompt.imageUrl}')">
+                        <img src="${prompt.imageUrl}" alt="${cleanTitle}" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-white border border-white/10">
+                            #${cleanCategory}
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="text-lg font-bold mb-2 text-white line-clamp-1">${cleanTitle}</h3>
+                        <div class="bg-gray-800/50 rounded-lg p-3 flex-grow mb-4 relative group/code overflow-y-auto max-h-32 hide-scrollbar">
+                            <p class="text-gray-300 text-sm italic font-mono leading-relaxed" id="prompt-text-${prompt.id}">${cleanPromptText}</p>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-gray-700/50 pt-4 mt-auto">
+                            <div class="flex items-center gap-4">
+                                <button onclick="handleLike('${prompt.id}')" class="flex items-center gap-2 text-gray-400 hover:text-red-400 transition-colors group/like">
+                                    <i class="fa-solid fa-heart group-active/like:scale-75 transition-transform"></i>
+                                    <span id="like-count-${prompt.id}">${prompt.likes || 0}</span>
+                                </button>
+                                <div class="flex items-center gap-1 text-gray-400" title="Comments">
+                                    <i class="fa-solid fa-comment text-sm"></i>
+                                    <span class="text-sm">${prompt.commentsCount || 0}</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <button onclick="handleCopy('${prompt.id}')" class="text-gray-400 hover:text-indigo-400 transition-colors" title="Copy Prompt">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                                <button onclick="handleShare('${cleanTitle}')" class="text-gray-400 hover:text-blue-400 transition-colors" title="Share">
+                                    <i class="fa-solid fa-share-nodes"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                promptsGrid.appendChild(card);
+            });
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredPrompts.length / itemsPerPage);
+            const paginationContainer = document.getElementById('paginationContainer');
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.innerText = i;
+                btn.className = `px-4 py-2 rounded-lg font-bold transition-all ${
+                    i === currentPage ? 'bg-indigo-600 text-white scale-105' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`;
+                btn.onclick = () => renderPage(i);
+                paginationContainer.appendChild(btn);
+            }
+        }
+
+        window.handleLike = async (id) => {
+            const countSpan = document.getElementById(`like-count-${id}`);
+            let currentLikes = parseInt(countSpan.innerText);
+            countSpan.innerText = currentLikes + 1;
+            countSpan.parentElement.classList.add("text-red-400");
+            
+            try {
+                const promptRef = doc(db, "ai_posts", id);
+                await updateDoc(promptRef, { likes: increment(1) });
+            } catch (error) {
+                console.error("Error updating likes:", error);
+                countSpan.innerText = currentLikes;
+            }
+        };
+
+        window.handleCopy = (id) => {
+            const text = document.getElementById(`prompt-text-${id}`).innerText;
+            navigator.clipboard.writeText(text).then(() => showToast("Prompt Copied!"));
+        };
+
+        window.handleShare = async (title) => {
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: title,
+                        text: 'Check out this AI prompt!',
+                        url: window.location.href,
+                    });
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => showToast("Link Copied!"));
+            }
+        };
+
+        window.openModal = (url) => {
+            document.getElementById('modalImg').src = url;
+            document.getElementById('imageModal').classList.remove('hidden');
+        };
+
+        window.closeModal = () => {
+            document.getElementById('imageModal').classList.add('hidden');
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+        document.getElementById('sortFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+        fetchPrompts();
+    </script>
+</body>
+</html>
