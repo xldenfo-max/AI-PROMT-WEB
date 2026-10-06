@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | Prompt Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="w-full glass shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 text-white hover:text-indigo-400 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span class="font-bold">Back to Hub</span>
+            </a>
+            <div id="adminControls" class="hidden">
+                <button id="logoutBtn" class="text-sm bg-red-500/20 text-red-400 px-4 py-2 rounded-lg hover:bg-red-500/30 transition-colors">
+                    <i class="fa-solid fa-right-from-bracket mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4">
+        
+        <!-- Login Section -->
+        <div id="loginSection" class="glass p-8 rounded-2xl w-full max-w-md shadow-2xl my-auto">
+            <div class="text-center mb-8">
+                <i class="fa-solid fa-shield-halved text-4xl text-indigo-400 mb-4"></i>
+                <h2 class="text-2xl font-bold text-white">Admin Login</h2>
+                <p class="text-gray-400 text-sm mt-2">Secure access required to manage prompts.</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Email</label>
+                    <input type="email" id="email" required class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white">
+                </div>
+                <div id="loginError" class="text-red-400 text-sm hidden"></div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Sign In
+                </button>
+            </form>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="hidden w-full max-w-5xl space-y-8 my-8">
+            
+            <!-- Upload Form -->
+            <div class="glass p-8 rounded-2xl shadow-2xl">
+                <div class="border-b border-gray-700 pb-4 mb-6">
+                    <h2 class="text-2xl font-bold text-white" id="formTitle">Upload New Prompt</h2>
+                    <p class="text-gray-400 text-sm">Add or edit generated assets in the public feed.</p>
+                </div>
+                
+                <form id="uploadForm" class="space-y-6">
+                    <input type="hidden" id="editPostId" value="">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Title</label>
+                            <input type="text" id="promptTitle" required placeholder="e.g. Cyberpunk Cityscape" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-1">Category</label>
+                            <select id="promptCategory" required class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white">
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Gaming">Gaming</option>
+                                <option value="Love & Romance">Love & Romance</option>
+                                <option value="Sci-Fi & Cyberpunk">Sci-Fi & Cyberpunk</option>
+                                <option value="Anime & Fantasy">Anime & Fantasy</option>
+                                <option value="Photorealistic">Photorealistic</option>
+                                <option value="Nature & Landscapes">Nature & Landscapes</option>
+                                <option value="3D & Concept Art">3D & Concept Art</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">AI Prompt Text</label>
+                        <textarea id="promptText" required rows="4" placeholder="Enter the exact prompt used..." class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white font-mono text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1">Initial Likes Count</label>
+                        <input type="number" id="initialLikes" value="0" min="0" class="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-400 mb-1" id="imageLabel">AI Image</label>
+                        <input type="file" id="promptImage" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-colors">
+                        <p id="imageHelp" class="text-xs text-gray-500 mt-1 hidden">Leave empty if you don't want to change the existing image while editing.</p>
+                    </div>
+
+                    <div id="uploadStatus" class="hidden text-sm p-3 rounded-lg bg-gray-800"></div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" id="submitBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> <span id="submitBtnText">Upload to Hub</span>
+                        </button>
+                        <button type="button" id="cancelEditBtn" class="hidden bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                            Cancel Edit
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Existing Posts Section -->
+            <div class="glass p-8 rounded-2xl shadow-2xl">
+                <h3 class="text-xl font-bold text-white mb-6">Manage Uploaded Prompts</h3>
+                <div id="adminPostsList" class="space-y-4">
+                    <p class="text-gray-400 text-center py-4">Loading posts...</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from "./firebase-config.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+        const IMGBB_API_KEY = "c5e299237500f4c7b80c9e0a7b5f9cd0"; 
+
+        const loginSection = document.getElementById('loginSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const adminControls = document.getElementById('adminControls');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        let loadedPosts = [];
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+                adminControls.classList.remove('hidden');
+                fetchAdminPosts();
+            } else {
+                loginSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                adminControls.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
+            
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                errorDiv.classList.add('hidden');
+            } catch (error) {
+                errorDiv.innerText = "Invalid Email or Password.";
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        async function fetchAdminPosts() {
+            const listDiv = document.getElementById('adminPostsList');
+            try {
+                const q = query(collection(db, "ai_posts"), orderBy("timestamp", "desc"));
+                const snapshot = await getDocs(q);
+                loadedPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if(loadedPosts.length === 0) {
+                    listDiv.innerHTML = '<p class="text-gray-400 text-center py-4">No uploaded posts found.</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = '';
+                loadedPosts.forEach(post => {
+                    const item = document.createElement('div');
+                    item.className = "flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-800/60 border border-gray-700/50 rounded-xl";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-4 w-full sm:w-auto">
+                            <img src="${post.imageUrl}" class="w-16 h-16 object-cover rounded-lg border border-gray-600">
+                            <div>
+                                <h4 class="font-bold text-white line-clamp-1">${post.title || 'Untitled'}</h4>
+                                <span class="text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">#${post.category}</span>
+                                <span class="text-xs text-gray-400 ml-2"><i class="fa-solid fa-heart text-red-400"></i> ${post.likes || 0}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto justify-end">
+                            <button onclick="editPost('${post.id}')" class="px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg text-sm transition-colors">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
+                            </button>
+                            <button onclick="deletePost('${post.id}')" class="px-3 py-1.5 bg-red-600/20 text-red-400 hover:bg-red-600/30 border border-red-500/30 rounded-lg text-sm transition-colors">
+                                <i class="fa-solid fa-trash mr-1"></i> Delete
+                            </button>
+                        </div>
+                    `;
+                    listDiv.appendChild(item);
+                });
+            } catch (err) {
+                console.error(err);
+                listDiv.innerHTML = '<p class="text-red-400 text-center py-4">Error loading posts.</p>';
+            }
+        }
+
+        window.editPost = (id) => {
+            const post = loadedPosts.find(p => p.id === id);
+            if (!post) return;
+
+            document.getElementById('editPostId').value = post.id;
+            document.getElementById('promptTitle').value = post.title || '';
+            document.getElementById('promptCategory').value = post.category || '';
+            document.getElementById('promptText').value = post.promptText || '';
+            document.getElementById('initialLikes').value = post.likes || 0;
+
+            document.getElementById('formTitle').innerText = "Edit Prompt";
+            document.getElementById('submitBtnText').innerText = "Update Prompt";
+            document.getElementById('promptImage').required = false;
+            document.getElementById('imageHelp').classList.remove('hidden');
+            cancelEditBtn.classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        function resetForm() {
+            document.getElementById('uploadForm').reset();
+            document.getElementById('editPostId').value = '';
+            document.getElementById('formTitle').innerText = "Upload New Prompt";
+            document.getElementById('submitBtnText').innerText = "Upload to Hub";
+            document.getElementById('promptImage').required = true;
+            document.getElementById('imageHelp').classList.add('hidden');
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        window.deletePost = async (id) => {
+            if (!confirm("Are you sure you want to delete this prompt?")) return;
+
+            try {
+                await deleteDoc(doc(db, "ai_posts", id));
+                fetchAdminPosts();
+                alert("Prompt deleted successfully!");
+            } catch (err) {
+                console.error("Delete error:", err);
+                alert("Failed to delete prompt.");
+            }
+        };
+
+        async function uploadToImgBB(file) {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                return data.data.url;
+            } else {
+                throw new Error("ImgBB Upload Failed");
+            }
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('editPostId').value;
+            const btn = document.getElementById('submitBtn');
+            const fileInput = document.getElementById('promptImage');
+            const file = fileInput.files[0];
+
+            btn.disabled = true;
+            uploadStatus.classList.remove('hidden');
+            uploadStatus.className = "text-sm p-3 rounded-lg bg-blue-500/20 text-blue-400";
+            uploadStatus.innerText = editId ? "Updating post..." : "Uploading image to ImgBB...";
+
+            try {
+                let downloadURL = null;
+
+                if (file) {
+                    downloadURL = await uploadToImgBB(file);
+                }
+
+                if (editId) {
+                    const updateData = {
+                        title: document.getElementById('promptTitle').value,
+                        category: document.getElementById('promptCategory').value,
+                        promptText: document.getElementById('promptText').value,
+                        likes: parseInt(document.getElementById('initialLikes').value) || 0,
+                    };
+                    if (downloadURL) updateData.imageUrl = downloadURL;
+
+                    await updateDoc(doc(db, "ai_posts", editId), updateData);
+                    uploadStatus.innerText = "Successfully updated!";
+                } else {
+                    if (!file) {
+                        alert("Please select an image file.");
+                        btn.disabled = false;
+                        return;
+                    }
+                    await addDoc(collection(db, "ai_posts"), {
+                        title: document.getElementById('promptTitle').value,
+                        category: document.getElementById('promptCategory').value,
+                        promptText: document.getElementById('promptText').value,
+                        imageUrl: downloadURL,
+                        likes: parseInt(document.getElementById('initialLikes').value) || 0,
+                        timestamp: serverTimestamp()
+                    });
+                    uploadStatus.innerText = "Successfully uploaded!";
+                }
+
+                uploadStatus.className = "text-sm p-3 rounded-lg bg-green-500/20 text-green-400";
+                resetForm();
+                fetchAdminPosts();
+
+                setTimeout(() => uploadStatus.classList.add('hidden'), 4000);
+
+            } catch (error) {
+                console.error("Error:", error);
+                uploadStatus.className = "text-sm p-3 rounded-lg bg-red-500/20 text-red-400";
+                uploadStatus.innerText = "Operation failed. Check ImgBB API key.";
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
