@@ -7,11 +7,28 @@
     
     <!-- Favicon & Meta Tags -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <meta name="description" content="Discover, copy, and share high-quality AI art prompts for ChatGPT, Gemini, Midjourney, and DALL-E 3.">
-    <meta property="og:title" content="AI Prompt Hub | Explore Creative Prompts">
-    <meta property="og:description" content="High quality AI prompts for Midjourney, ChatGPT, Gemini and DALL-E.">
+    <meta name="title" content="PromptHub Digital | Explore & Share High-Quality AI Prompts">
+    <meta name="description" content="Discover, copy, and share high-quality AI art prompts for ChatGPT, Gemini, Midjourney, and DALL-E 3. Free prompt engineering assets for creators.">
+    
+    <!-- Open Graph / Facebook / WhatsApp Meta Tags -->
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/">
+    <meta property="og:title" content="PromptHub Digital | Explore & Share AI Prompts">
+    <meta property="og:description" content="Discover, copy, and share high-quality AI art prompts for ChatGPT, Gemini, Midjourney, and DALL-E 3.">
+    <!-- WhatsApp & Facebook Preview Image (ඔයාගේ Preview Image එකේ Direct Link එක මෙතැනට දාන්න) -->
+    <meta property="og:image" content="https://yourdomain.com/preview-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="PromptHub Digital">
 
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://yourdomain.com/">
+    <meta name="twitter:title" content="PromptHub Digital | Explore & Share AI Prompts">
+    <meta name="twitter:description" content="Discover, copy, and share high-quality AI art prompts for ChatGPT, Gemini, Midjourney, and DALL-E 3.">
+    <meta name="twitter:image" content="https://yourdomain.com/preview-image.jpg">
+
+    <!-- CSS & Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -69,7 +86,8 @@
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <i class="fa-solid fa-search text-blue-400"></i>
                     </div>
-                    <input type="text" id="searchInput" class="block w-full pl-10 pr-4 py-2 bg-white/90 border border-blue-200 rounded-full text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all shadow-sm" placeholder="Search prompts, titles...">
+                    <!-- Fixed: Added oninput listener for dynamic searching -->
+                    <input type="text" id="searchInput" oninput="typeof applyFilters === 'function' ? applyFilters() : null" class="block w-full pl-10 pr-4 py-2 bg-white/90 border border-blue-200 rounded-full text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all shadow-sm" placeholder="Search prompts, titles...">
                 </div>
             </div>
         </div>
@@ -79,12 +97,15 @@
     <main class="pt-20 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-grow w-full">
         
         <!-- Category Pills Bar -->
-        <div class="my-6">
-            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 px-1" id="categoryContainer"></div>
+        <div class="my-6 relative z-10">
+            <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar py-2 px-1" id="categoryContainer">
+                <!-- Javascript will render category buttons here -->
+            </div>
         </div>
 
         <!-- Prompts Grid -->
-        <div id="promptsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="promptsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-0">
+            <!-- Initial Loading State -->
             <div class="glass-card rounded-2xl p-12 text-center text-blue-600 col-span-full shadow-sm">
                 <i class="fa-solid fa-spinner fa-spin text-4xl mb-3"></i>
                 <p class="font-medium text-slate-600">Loading prompts...</p>
@@ -92,51 +113,102 @@
         </div>
 
         <!-- Pagination Controls -->
-        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-12"></div>
+        <div id="paginationContainer" class="flex justify-center items-center gap-2 mt-12 mb-8">
+            <!-- Javascript will render pagination here -->
+        </div>
     </main>
 
     <!-- Business Footer -->
-    <footer class="glass-card border-t border-blue-100 text-slate-600 mt-auto">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-                            <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+    <footer class="glass-card border-t border-blue-100/80 bg-white/60 backdrop-blur-md text-slate-600 mt-auto w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mb-10">
+                
+                <!-- Brand & Info Section (Col 5) -->
+                <div class="md:col-span-5 space-y-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                            <i class="fa-solid fa-wand-magic-sparkles text-base"></i>
                         </div>
-                        <span class="font-bold text-lg text-slate-800">PromptHub Digital</span>
+                        <span class="font-extrabold text-xl tracking-tight text-slate-800">PromptHub <span class="text-blue-600">Digital</span></span>
                     </div>
-                    <p class="text-sm text-slate-500 max-w-md leading-relaxed">
-                        Your ultimate hub for high-quality AI prompts. Empowering creators, developers, and visual artists with curated prompt engineering assets.
+                    <p class="text-xs text-slate-500 leading-relaxed max-w-sm">
+                        Empowering creators, developers, and visual artists with high-quality, curated AI prompts. Unlock endless creative potential with structured prompt engineering assets.
                     </p>
+                    
+                    <!-- Contact Buttons (WhatsApp & Email) -->
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <a href="https://wa.me/94740544995" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-sm text-emerald-600"></i>
+                            <span>WhatsApp Direct</span>
+                        </a>
+                        <!-- Fixed: Added mailto: for email links -->
+                        <a href="mailto:xldenfol@gmail.com" class="inline-flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm">
+                            <i class="fa-regular fa-envelope text-sm text-blue-600"></i>
+                            <span>Email Us</span>
+                        </a>
+                    </div>
                 </div>
-                <div>
-                    <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3">Quick Links</h4>
-                    <ul class="space-y-2 text-sm">
-                        <li><a href="index.html" class="hover:text-blue-600 transition-colors">Home</a></li>
+
+                <!-- Platform Features Section (Col 4) -->
+                <div class="md:col-span-4">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4 border-l-2 border-blue-600 pl-2">Platform Features</h4>
+                    <ul class="space-y-2.5 text-xs text-slate-500 font-medium">
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>
+                            <span>Curated Multi-Category Prompts</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>
+                            <span>One-Click Prompt Copying & Direct Links</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>
+                            <span>Multi-AI Tool Badges (ChatGPT, Gemini, Midjourney)</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-check text-blue-500 text-[10px]"></i>
+                            <span>Single-User Dynamic Like System</span>
+                        </li>
                     </ul>
                 </div>
-                <div>
-                    <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-3">Connect With Us</h4>
-                    <div class="flex gap-3 text-slate-500">
-                        <a href="#" class="w-9 h-9 bg-white border border-blue-100 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fa-brands fa-facebook-f text-sm"></i></a>
-                        <a href="#" class="w-9 h-9 bg-white border border-blue-100 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fa-brands fa-whatsapp text-sm"></i></a>
-                        <a href="#" class="w-9 h-9 bg-white border border-blue-100 rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all shadow-sm"><i class="fa-brands fa-instagram text-sm"></i></a>
-                    </div>
+
+                <!-- Navigation Links (Col 3) -->
+                <div class="md:col-span-3">
+                    <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4 border-l-2 border-blue-600 pl-2">Quick Navigation</h4>
+                    <ul class="space-y-2 text-xs text-slate-500 font-medium">
+                        <li>
+                            <a href="index.html" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-angle-right text-[10px] text-slate-400"></i> Home Feed
+                            </a>
+                        </li>
+                        <li>
+                            <a href="admin.html" class="hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                <i class="fa-solid fa-angle-right text-[10px] text-slate-400"></i> Creator Dashboard
+                            </a>
+                        </li>
+                    </ul>
                 </div>
+
             </div>
-            <div class="border-t border-blue-100/80 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-4">
-                <p>&copy; 2026 PromptHub. All rights reserved.</p>
-                <p>Designed with <i class="fa-solid fa-heart text-red-500"></i> for isira induwara</p>
+
+            <!-- Copyright & Credits Sub-Footer -->
+            <div class="border-t border-blue-100/80 pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-400 gap-3 font-medium">
+                <p>&copy; <span id="currentYear">2026</span> PromptHub Digital. All rights reserved.</p>
+                <p class="flex items-center gap-1">
+                    Designed & Developed with <i class="fa-solid fa-heart text-red-500 text-xs"></i> for <span class="font-semibold text-slate-700">isira induwara</span>
+                </p>
             </div>
+
         </div>
     </footer>
 
     <!-- Image Preview Modal -->
-    <div id="imageModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-md" onclick="closeModal()">
-        <div class="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center" onclick="event.stopPropagation()">
+    <!-- Fixed: Improved smoothness with duration and ease -->
+    <div id="imageModal" class="fixed inset-0 bg-slate-900/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-md opacity-0 transition-opacity duration-300 ease-in-out" onclick="typeof closeModal === 'function' ? closeModal() : null">
+        <div class="relative max-w-4xl w-full max-h-[90vh] flex items-center justify-center scale-95 transition-transform duration-300 ease-in-out" onclick="event.stopPropagation()">
             <img id="modalImg" src="" class="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl border border-white">
-            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-3xl hover:text-blue-200 transition-colors">
+            <button onclick="closeModal()" class="absolute -top-10 right-0 text-white text-3xl hover:text-blue-200 transition-colors focus:outline-none">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -148,7 +220,14 @@
         <span id="toastMsg" class="font-medium text-sm">Copied!</span>
     </div>
 
-<script type="module" src="js/index12qw.js"></script>
+    <!-- Core Javascript Modoule -->
+    <script type="module" src="js/index12qw.js"></script>
+    
+    <!-- Inline script for simple UI dynamic elements -->
+    <script>
+        // Set current year in footer dynamically
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
 
 </body>
 </html>
